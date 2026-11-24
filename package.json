@@ -1,0 +1,16 @@
+{
+  "name": "amazon-oa-ai-practice",
+  "private": true,
+  "scripts": {
+    "test:1": "node --test exercises/01-lru-cache/test/lru.test.js",
+    "test:2": "node --test exercises/02-order-pricing/test/pricing.test.js",
+    "test:3": "node --test exercises/03-task-scheduler/test/scheduler.test.js",
+    "test:4": "node --test exercises/04-async-utils/test/async.test.js",
+    "test:5": "node --test exercises/05-csv-parser/test/csv.test.js",
+    "test:6": "node --test exercises/06-http-api/test/app.test.js",
+    "test:7": "node --test exercises/07-event-emitter/test/emitter.test.js",
+    "test:8": "node --test exercises/08-date-utils/test/dates.test.js",
+    "test:9": "node --test exercises/09-security-hardening/test/secure.test.js",
+    "test": "node --test exercises/01-lru-cache/test exercises/02-order-pricing/test exercises/03-task-scheduler/test exercises/04-async-utils/test exercises/05-csv-parser/test exercises/06-http-api/test exercises/07-event-emitter/test exercises/08-date-utils/test exercises/09-security-hardening/test"
+  }
+}
