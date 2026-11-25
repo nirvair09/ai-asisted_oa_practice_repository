@@ -1,3 +1,4 @@
+const { resolve } = require('dns');
 const http = require('http');
 
 function createApp() {
@@ -10,11 +11,21 @@ function createApp() {
   }
 
   function readBody(req) {
+
     return new Promise((resolve) => {
       let data = '';
+
       req.on('data', (c) => (data += c));
-      req.on('end', () => resolve(JSON.parse(data)));
+
+      req.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          resolve(undefined);
+        }
+      });
     });
+
   }
 
   const server = http.createServer(async (req, res) => {
@@ -25,21 +36,58 @@ function createApp() {
       if (req.method === 'GET') {
         const limit = parseInt(url.searchParams.get('limit') ?? '10');
         const offset = parseInt(url.searchParams.get('offset') ?? '0');
-        const list = [...items.values()].slice(offset, limit);
+        if(!Number.isInteger(limi)||limit<1||!Number.isInteger(offset)||offset<0){
+          return send(res,400,{error:"wrong offset or limit values"})
+        }
+
+
+
+        const list = [...items.values()].slice(offset, limit+offset);
         return send(res, 200, list);
       }
       if (req.method === 'POST') {
         const body = await readBody(req);
+
+        if (body === undefined || body === null || typeof body !== 'object') {
+          return send(res, 400, { error: 'invalid JSON body' });
+        }
         const item = { id: nextId++, name: body.name, price: body.price };
+        if (typeof body.price !== 'number' || !Number.isFinite(body.price) || body.price < 0) {
+          return send(res, 400, { error: 'wrong price parameter' })
+        }
+
         items.set(item.id, item);
-        return send(res, 200, item);
+
+        let data = '';
+
+        req.on('data', (c) => (data += c));
+
+        req.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (error) {
+            resolve(undefined);
+          }
+        });
       }
     }
 
     if (parts[0] === 'items' && parts.length === 2) {
-      const id = Number(parts[1]);
-      if (req.method === 'GET') return send(res, 200, items.get(id) ?? null);
-      // TODO: DELETE
+        const id = Number(parts[1]);
+
+      if (req.method === 'GET') {
+        const item = items.get(id);
+        if (!item) return send(res, 404, { error: 'item not found' });
+        return send(res, 200, item);
+      }
+
+      if (req.method === 'DELETE') {
+        if (!items.delete(id)) return send(res, 404, { error: 'item not found' });
+        res.writeHead(204);
+        return res.end();
+      }
+
+      return send(res, 405, { error: 'method not allowed' });
     }
 
     send(res, 404, { error: 'not found' });
